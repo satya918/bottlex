@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080/",
+  baseURL: "https://bottlex-1.onrender.com",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

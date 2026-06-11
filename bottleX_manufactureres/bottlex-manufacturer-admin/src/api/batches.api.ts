@@ -8,27 +8,27 @@ const getCompanyId = () => {
         : "";
 };
 
-export const QRAPI = {
+export const BatchesAPI = {
+   
 
-
-    createQr: (data: any) =>
+    createBatch: (data: any) =>
         apiClient.post(
-            `/api/admin/qr/generate/${getCompanyId()}`,
+            `/api/admin/batches/${getCompanyId()}`,
             data
         ),
 
-    updateQr: (
+    updateBatch: (
         id: string,
         data: any
     ) =>
         apiClient.put(
-            `/api/admin/qr/${getCompanyId()}/${id}`,
+            `/api/admin/batches/${getCompanyId()}/${id}`,
             data
         ),
 
-    deleteQr: (id: string) =>
+    deleteBatch : (id: string) =>
         apiClient.delete(
-            `/api/admin/qr/delete/${getCompanyId()}/${id}`
+            `/api/admin/batches/${getCompanyId()}/${id}`
         ),
 
     toggleStatus: (
@@ -36,9 +36,8 @@ export const QRAPI = {
         active: boolean
     ) =>
         apiClient.patch(
-            `/api/admin/qr/${getCompanyId()}/${id}/status?active=${active}`
+            `/api/admin/batches/${getCompanyId()}/${id}/status?active=${active}`
         ),
 
-    getQrs: (page = 0,
-        size = 50) => apiClient.get(`/api/admin/qr/getAll/${getCompanyId()}`),
+    getBatches: () => apiClient.get(`/api/admin/batches/${getCompanyId()}`),
 };

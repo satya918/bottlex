@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
+  //baseURL: "http://localhost:8080",
   baseURL: "https://bottlex-1.onrender.com",
   withCredentials: true,
   headers: {
@@ -8,24 +9,31 @@ const apiClient = axios.create({
   },
 });
 
-// REQUEST INTERCEPTOR
-
 apiClient.interceptors.request.use(
   (config) => {
-
-    const token =
-      localStorage.getItem("manufacturer_token");
+    const token = localStorage.getItem("manufacturer_token");
 
     if (token) {
-
-      config.headers.Authorization =
-        `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
+  (error) => Promise.reject(error)
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
 
   (error) => {
+    if (error.response?.status === 401) {
+
+      localStorage.removeItem("manufacturer_token");
+      localStorage.removeItem("user");
+
+      window.location.href = "/login";
+    }
+
     return Promise.reject(error);
   }
 );

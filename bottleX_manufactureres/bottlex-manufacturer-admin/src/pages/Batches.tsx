@@ -22,8 +22,8 @@ import { useNavigate } from "react-router-dom";
 
 import toast from "react-hot-toast";
 
-import apiClient from "../api/apiClient";
-
+import { BatchesAPI } from "../api/batches.api";
+import { ProductsAPI } from "../api/products.api";
 interface Product {
 
   id: string;
@@ -108,9 +108,7 @@ export default function Batches() {
       setLoading(true);
 
       const response =
-        await apiClient.get(
-          "/api/admin/batches"
-        );
+        await BatchesAPI.getBatches();
 
       setBatches(response.data);
 
@@ -137,8 +135,10 @@ export default function Batches() {
     try {
 
       const response =
-        await apiClient.get(
-          "/api/products"
+        await ProductsAPI.getProducts(
+          page,
+          10,
+          search
         );
 
       setProducts(response.data.content);
@@ -189,10 +189,7 @@ export default function Batches() {
         return;
       }
 
-      await apiClient.post(
-        "/api/admin/batches",
-        formData
-      );
+      await BatchesAPI.createBatch(formData);
 
       toast.success(
         "Batch created successfully"
@@ -224,24 +221,22 @@ export default function Batches() {
 
       if (!selectedBatch) return;
 
-      await apiClient.put(
-        `/api/admin/batches/${selectedBatch.id}`,
-        {
-          batchNumber:
-            selectedBatch.batchNumber,
+      await BatchesAPI.updateBatch(selectedBatch.id, {
+        batchNumber:
+          selectedBatch.batchNumber,
 
-          quantity:
-            selectedBatch.quantity,
+        quantity:
+          selectedBatch.quantity,
 
-          manufacturingDate:
-            selectedBatch.manufacturingDate,
+        manufacturingDate:
+          selectedBatch.manufacturingDate,
 
-          expiryDate:
-            selectedBatch.expiryDate,
+        expiryDate:
+          selectedBatch.expiryDate,
 
-          productId:
-            selectedBatch.productId,
-        }
+        productId:
+          selectedBatch.productId,
+      }
       );
 
       toast.success(
@@ -281,9 +276,7 @@ export default function Batches() {
 
     try {
 
-      await apiClient.delete(
-        `/api/admin/batches/${id}`
-      );
+      await BatchesAPI.deleteBatch(id);
 
       toast.success(
         "Batch deleted"
@@ -311,9 +304,7 @@ export default function Batches() {
 
     try {
 
-      await apiClient.patch(
-        `/api/admin/batches/${batch.id}/status?active=${!batch.active}`
-      );
+      await BatchesAPI.toggleStatus(batch.id, !batch.active);
 
       toast.success(
         "Status updated"
@@ -824,7 +815,7 @@ export default function Batches() {
                                         text-gray-500
                                     "
                 >
-                  No batches found
+                  No Active batches found
                 </td>
 
               </tr>

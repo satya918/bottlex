@@ -8,34 +8,27 @@ const getCompanyId = () => {
         : "";
 };
 
-export const ProductsAPI = {
-    getProducts: (
-        page: number,
-        size: number,
-        search: string
-    ) =>
-        apiClient.get(
-            `/api/products/${getCompanyId()}?page=${page}&size=${size}&search=${search}`
-        ),
+export const CategoriesAPI = {
+   
 
-    createProduct: (data: any) =>
+    createCategory: (data: any) =>
         apiClient.post(
-            `/api/products/${getCompanyId()}`,
+            `/api/admin/categories/${getCompanyId()}`,
             data
         ),
 
-    updateProduct: (
+    updateCategory: (
         id: string,
         data: any
     ) =>
         apiClient.put(
-            `/api/products/${getCompanyId()}/${id}`,
+            `/api/admin/categories/${getCompanyId()}/${id}`,
             data
         ),
 
-    deleteProduct: (id: string) =>
+    deleteCategory: (id: string) =>
         apiClient.delete(
-            `/api/products/${getCompanyId()}/${id}`
+            `/api/admin/categories/${getCompanyId()}/${id}`
         ),
 
     toggleStatus: (
@@ -43,7 +36,7 @@ export const ProductsAPI = {
         active: boolean
     ) =>
         apiClient.patch(
-            `/api/products/${getCompanyId()}/${id}/status?active=${active}`
+            `/api/admin/categories/${getCompanyId()}/${id}/status?active=${active}`
         ),
 
     getCategories: () => apiClient.get(`/api/admin/categories/${getCompanyId()}`),

@@ -55,7 +55,6 @@ export default function ProductsPage() {
             categoryId: "",
             price: "",
             stockQuantity: "",
-            manufacturer: "",
         });
 
     const {
@@ -108,7 +107,7 @@ export default function ProductsPage() {
             categoryId: "",
             price: "",
             stockQuantity: "",
-            manufacturer: "",
+           
         });
     };
 
@@ -596,7 +595,7 @@ export default function ProductsPage() {
                                         text-gray-500
                                     "
                                 >
-                                    No products found
+                                    No Active products found
                                 </td>
 
                             </tr>
@@ -927,7 +926,7 @@ export default function ProductsPage() {
                                 "
                             />
 
-                            <input
+                            {/* <input
                                 placeholder="Manufacturer"
                                 value={formData.manufacturer}
                                 onChange={(e) =>
@@ -942,7 +941,7 @@ export default function ProductsPage() {
                                     p-4
                                     rounded-xl
                                 "
-                            />
+                            /> */}
 
                             <input
                                 type="number"
@@ -1184,7 +1183,7 @@ export default function ProductsPage() {
                                 "
                             />
 
-                            <input
+                            {/* <input
                                 value={
                                     selectedProduct.manufacturer
                                 }
@@ -1200,7 +1199,7 @@ export default function ProductsPage() {
                                     p-4
                                     rounded-xl
                                 "
-                            />
+                            /> */}
 
                         </div>
 

@@ -32,7 +32,11 @@ import { saveAs } from "file-saver";
 
 import { QRAPI } from "../api/qr.api";
 
-import apiClient from "../api/apiClient";
+import { ProductsAPI } from "../api/products.api";
+import { BatchesAPI } from "../api/batches.api";
+
+
+
 
 interface Product {
 
@@ -87,14 +91,28 @@ export default function QRManagementPage() {
   const [batches, setBatches] =
     useState<Batch[]>([]);
 
-  const [qrCodes, setQrCodes] =
-    useState<QRData[]>([]);
+
 
   const [showModal, setShowModal] =
     useState(false);
 
   const [selectedQR, setSelectedQR] =
     useState<QRData | null>(null);
+
+  const [qrCodes, setQrCodes] =
+    useState<QRData[]>([]);
+
+  const [page, setPage] =
+    useState(0);
+
+  const [size] =
+    useState(50);
+
+  const [totalPages, setTotalPages] =
+    useState(0);
+
+  const [totalElements, setTotalElements] =
+    useState(0);
 
   const qrRef =
     useRef<HTMLDivElement>(null);
@@ -115,34 +133,32 @@ export default function QRManagementPage() {
     try {
 
       setLoading(true);
-
       const [
         qrRes,
         productRes,
         batchRes,
       ] = await Promise.all([
-
-        QRAPI.getAll(),
-
-        apiClient.get(
-          "/api/products"
+        QRAPI.getQrs(page, size),
+        ProductsAPI.getProducts(
+          0,
+          10,
+          search
         ),
-
-        apiClient.get(
-          "/api/admin/batches"
-        ),
+        BatchesAPI.getBatches(),
       ]);
-
       setQrCodes(
-        Array.isArray(qrRes.data)
-          ? qrRes.data
-          : []
+        qrRes.data.content || []
+      );
+      setTotalPages(
+        qrRes.data.totalPages || 0
+      );
+
+      setTotalElements(
+        qrRes.data.totalElements || 0
       );
 
       setProducts(
-        Array.isArray(productRes.data)
-          ? productRes.data
-          : productRes.data.content || []
+        productRes.data.content || []
       );
 
       setBatches(
@@ -169,7 +185,18 @@ export default function QRManagementPage() {
 
     fetchData();
 
-  }, []);
+  }, [page]);
+
+  useEffect(() => {
+    if (selectedQR) {
+      QRCode.toCanvas(
+        document.getElementById(
+          "previewQR"
+        ) as HTMLCanvasElement,
+        selectedQR.qrCode
+      );
+    }
+  }, [selectedQR]);
 
   // ====================================================
   // GENERATE QR
@@ -191,12 +218,11 @@ export default function QRManagementPage() {
         return;
       }
 
-      await QRAPI.generate(
-        formData
-      );
+      const response =
+        await QRAPI.createQr(formData);
 
       toast.success(
-        "QR generated successfully"
+        `${response.data.generatedCount} QR Codes Generated`
       );
 
       setShowModal(false);
@@ -230,7 +256,7 @@ export default function QRManagementPage() {
 
     try {
 
-      await QRAPI.delete(id);
+      await QRAPI.deleteQr(id);
 
       toast.success(
         "QR deleted"
@@ -322,84 +348,67 @@ export default function QRManagementPage() {
 
   const printPDF = async () => {
 
-    try {
+    const pdf = new jsPDF();
 
-      const printElement =
-        document.createElement("div");
+    let x = 10;
+    let y = 10;
 
-      printElement.style.padding = "20px";
+    for (let i = 0; i < qrCodes.length; i++) {
 
-      printElement.style.background =
-        "#ffffff";
-
-      printElement.style.color =
-        "#000000";
-
-      qrCodes.forEach((qr) => {
-
-        const item =
-          document.createElement("div");
-
-        item.style.marginBottom =
-          "20px";
-
-        item.innerHTML = `
-                <div>
-                    <h3>${qr.productName}</h3>
-                    <p>${qr.batchNumber}</p>
-                    <p>${qr.qrCode}</p>
-                </div>
-            `;
-
-        printElement.appendChild(item);
-      });
-
-      document.body.appendChild(
-        printElement
-      );
+      const qr = qrCodes[i];
 
       const canvas =
-        await html2canvas(
-          printElement,
-          {
-            backgroundColor:
-              "#ffffff",
-          }
+        document.createElement(
+          "canvas"
         );
+
+      await QRCode.toCanvas(
+        canvas,
+        qr.qrCode,
+        {
+          width: 120,
+        }
+      );
 
       const imgData =
         canvas.toDataURL(
           "image/png"
         );
 
-      const pdf =
-        new jsPDF();
-
       pdf.addImage(
         imgData,
         "PNG",
-        10,
-        10,
-        180,
-        0
+        x,
+        y,
+        35,
+        35
       );
 
-      pdf.save(
-        "qr-report.pdf"
+      pdf.setFontSize(8);
+
+      pdf.text(
+        qr.batchNumber,
+        x,
+        y + 40
       );
 
-      document.body.removeChild(
-        printElement
-      );
+      x += 45;
 
-    } catch (error) {
+      if (x > 150) {
+        x = 10;
+        y += 55;
+      }
 
-      console.log(error);
-
-      toast.error(
-        "PDF generation failed"
-      );
+      if (y > 250) {
+        pdf.addPage();
+        x = 10;
+        y = 10;
+      }
     }
+
+    pdf.save(
+      "BottleX-QR-Sheet.pdf"
+    );
   };
 
   // ====================================================
@@ -424,6 +433,8 @@ export default function QRManagementPage() {
       );
 
     }, [qrCodes, search]);
+
+
 
   // ====================================================
   // STATS
@@ -578,8 +589,7 @@ export default function QRManagementPage() {
                                 font-bold
                                 mt-2
                             ">
-                {qrCodes.length}
-              </h2>
+                {totalElements}              </h2>
 
             </div>
 
@@ -838,7 +848,7 @@ export default function QRManagementPage() {
                                         p-10
                                     "
                 >
-                  No QR codes found
+                  No Active QR codes found
                 </td>
 
               </tr>
@@ -863,14 +873,15 @@ export default function QRManagementPage() {
                                                 flex items-center gap-3
                                             ">
 
-                        <div
-                          id={qr.qrCode}
-                          className="
-                                                        bg-white
-                                                        p-2
-                                                        rounded-lg
-                                                    "
-                        />
+                        <button
+                          onClick={() => setSelectedQR(qr)}
+                          className="bg-white p-2 rounded-lg"
+                        >
+                          <QrCode
+                            size={30}
+                            className="text-black"
+                          />
+                        </button>
 
                         <div>
 
@@ -1024,6 +1035,47 @@ export default function QRManagementPage() {
           </tbody>
 
         </table>
+        <div className="
+  flex justify-between
+  items-center
+  mt-6
+">
+          <button
+            disabled={page === 0}
+            onClick={() =>
+              setPage(prev => prev - 1)
+            }
+            className="
+      px-4 py-2
+      rounded-xl
+      bg-[#222]
+      disabled:opacity-50
+    "
+          >
+            Previous
+          </button>
+
+          <span>
+            Page {page + 1} of {totalPages}
+          </span>
+
+          <button
+            disabled={
+              page >= totalPages - 1
+            }
+            onClick={() =>
+              setPage(prev => prev + 1)
+            }
+            className="
+      px-4 py-2
+      rounded-xl
+      bg-[#222]
+      disabled:opacity-50
+    "
+          >
+            Next
+          </button>
+        </div>
 
       </div>
 
@@ -1233,6 +1285,53 @@ export default function QRManagementPage() {
 
           </div>
 
+        </div>
+      )}
+      {selectedQR && (
+        <div
+          className="
+      fixed inset-0
+      bg-black/80
+      flex items-center
+      justify-center
+      z-50
+    "
+        >
+          <div
+            className="
+        bg-white
+        p-8
+        rounded-3xl
+        text-center
+      "
+          >
+            <h2 className="mb-4 text-black font-bold">
+              {selectedQR.productName}
+            </h2>
+
+            <canvas
+              id="previewQR"
+            />
+
+            <p className="mt-4 text-black">
+              {selectedQR.batchNumber}
+            </p>
+
+            <button
+              onClick={() =>
+                setSelectedQR(null)
+              }
+              className="
+          mt-6
+          bg-red-500
+          text-white
+          px-4 py-2
+          rounded-xl
+        "
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 

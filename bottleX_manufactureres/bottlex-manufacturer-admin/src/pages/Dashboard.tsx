@@ -97,11 +97,22 @@ export default function Dashboard() {
     const [distributors, setDistributors] =
         useState<DistributorRisk[]>([]);
 
+    const user =
+        localStorage.getItem("user");
+
     useEffect(() => {
 
         fetchDashboard();
 
     }, []);
+
+    const getCompanyId = () => {
+        const user = localStorage.getItem("user");
+
+        return user
+            ? JSON.parse(user).company.id
+            : "";
+    };
 
     const fetchDashboard = async () => {
 
@@ -114,28 +125,28 @@ export default function Dashboard() {
                 alertsRes,
                 productsRes,
                 batchesRes,
-                distributorsRes,
+                //             distributorsRes,
             ] = await Promise.all([
 
                 apiClient.get(
-                    "/api/admin/dashboard/stats"
+                    `/api/admin/dashboard/stats/${getCompanyId()}`
                 ),
 
                 apiClient.get(
-                    "/api/admin/dashboard/counterfeit-alerts"
+                    `/api/admin/dashboard/counterfeit-alerts/${getCompanyId()}`
                 ),
 
                 apiClient.get(
-                    "/api/admin/dashboard/product-fraud"
+                    `/api/admin/dashboard/product-fraud/${getCompanyId()}`
                 ),
 
                 apiClient.get(
-                    "/api/admin/dashboard/recent-batches"
+                    `/api/admin/dashboard/recent-batches/${getCompanyId()}`
                 ),
 
-                apiClient.get(
-                    "/api/admin/dashboard/distributor-risk"
-                ),
+                //             apiClient.get(
+                //                 "/api/admin/dashboard/distributor-risk/${getCompanyId()}"
+                //             ),
             ]);
 
             setStats(statsRes.data);
@@ -146,9 +157,9 @@ export default function Dashboard() {
 
             setBatches(batchesRes.data);
 
-            setDistributors(
-                distributorsRes.data
-            );
+            //        setDistributors(
+            //             distributorsRes.data
+            //         );
 
         } catch (error) {
 
@@ -207,7 +218,7 @@ export default function Dashboard() {
                             text-4xl
                             font-bold
                         ">
-                            Manufacturer Dashboard
+                            Welcome {user && `- ${JSON.parse(user).company.companyName}`}
                         </h1>
 
                         <p className="
@@ -582,51 +593,51 @@ export default function Dashboard() {
                             {products.map(
                                 (item, index) => (
 
-                                <div
-                                    key={index}
-                                    className="
+                                    <div
+                                        key={index}
+                                        className="
                                         bg-zinc-800
                                         rounded-2xl
                                         p-5
                                     "
-                                >
+                                    >
 
-                                    <div className="
+                                        <div className="
                                         flex items-center
                                         justify-between
                                     ">
 
-                                        <div>
+                                            <div>
 
-                                            <p className="
+                                                <p className="
                                                 text-lg
                                                 font-semibold
                                             ">
-                                                {item.name}
-                                            </p>
+                                                    {item.name}
+                                                </p>
 
-                                            <p className="
+                                                <p className="
                                                 text-sm
                                                 text-gray-400
                                                 mt-1
                                             ">
-                                                Counterfeit Detection Rate
-                                            </p>
+                                                    Counterfeit Detection Rate
+                                                </p>
 
-                                        </div>
+                                            </div>
 
-                                        <div className="
+                                            <div className="
                                             text-2xl
                                             font-bold
                                             text-red-400
                                         ">
-                                            {item.fakePercent}
+                                                {item.fakePercent}
+                                            </div>
+
                                         </div>
 
                                     </div>
-
-                                </div>
-                            ))}
+                                ))}
 
                         </div>
 
@@ -776,9 +787,9 @@ export default function Dashboard() {
                             {distributors.map(
                                 (dist) => (
 
-                                <div
-                                    key={dist.id}
-                                    className="
+                                    <div
+                                        key={dist.id}
+                                        className="
                                         bg-zinc-800
                                         rounded-2xl
                                         p-5
@@ -786,57 +797,64 @@ export default function Dashboard() {
                                         items-center
                                         justify-between
                                     "
-                                >
+                                    >
 
-                                    <div>
+                                        <div>
 
-                                        <p className="
+                                            <p className="
                                             text-lg
                                             font-semibold
                                         ">
-                                            {
-                                                dist.distributorName
-                                            }
-                                        </p>
+                                                {
+                                                    dist.distributorName
+                                                }
+                                            </p>
 
-                                        <p className="
+                                            <p className="
                                             text-gray-400
                                             text-sm
                                             mt-1
                                         ">
-                                            Fake Alerts:
-                                            {" "}
-                                            {
-                                                dist.fakeAlerts
-                                            }
-                                        </p>
+                                                Fake Alerts:
+                                                {" "}
+                                                {
+                                                    dist.fakeAlerts
+                                                }
+                                            </p>
 
-                                    </div>
+                                        </div>
 
-                                    <div className={`
+                                        <div className={`
                                         px-4
                                         py-2
                                         rounded-xl
                                         font-semibold
 
                                         ${dist.risk === "HIGH"
-                                            ? `
+                                                ? `
                                                 bg-red-500/20
                                                 text-red-400
                                             `
-                                            : `
+                                                : `
                                                 bg-orange-500/20
                                                 text-orange-400
                                             `
-                                        }
+                                            }
                                     `}>
 
-                                        {dist.risk} RISK
+                                            {dist.risk} RISK
+
+                                        </div>
 
                                     </div>
-
-                                </div>
-                            ))}
+                                ))}
+                            <h2 className="
+                            text-2xl
+                            font-bold
+                            mb-6
+                        ">
+                                Coming Soon
+                            </h2>
 
                         </div>
 

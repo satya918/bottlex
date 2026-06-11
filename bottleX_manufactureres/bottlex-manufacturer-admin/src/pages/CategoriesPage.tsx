@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 import toast from "react-hot-toast";
 
-import apiClient from "../api/apiClient";
+import { CategoriesAPI } from "../api/categories.api";
 
 interface Category {
 
@@ -79,8 +79,7 @@ export default function CategoriesPage() {
             setLoading(true);
 
             const response =
-                await apiClient.get(
-                    "/api/admin/categories"
+                await CategoriesAPI.getCategories(
                 );
 
             setCategories(response.data);
@@ -125,10 +124,7 @@ export default function CategoriesPage() {
                 return;
             }
 
-            await apiClient.post(
-                "/api/admin/categories",
-                formData
-            );
+            await CategoriesAPI.createCategory(formData);
 
             toast.success(
                 "Category created successfully"
@@ -162,10 +158,11 @@ export default function CategoriesPage() {
 
         try {
 
-            await apiClient.put(
-                `/api/admin/categories/${selectedCategory?.id}`,
+            await CategoriesAPI.updateCategory(
+                selectedCategory!.id,
                 selectedCategory
             );
+
 
             toast.success(
                 "Category updated successfully"
@@ -204,9 +201,7 @@ export default function CategoriesPage() {
 
         try {
 
-            await apiClient.delete(
-                `/api/admin/categories/${id}`
-            );
+            await CategoriesAPI.deleteCategory(id);
 
             toast.success(
                 "Category deleted successfully"
@@ -234,9 +229,7 @@ export default function CategoriesPage() {
 
         try {
 
-            await apiClient.patch(
-                `/api/admin/categories/${category.id}/status?active=${!category.active}`
-            );
+            await CategoriesAPI.toggleStatus(category.id, !category.active);
 
             toast.success(
                 "Status updated successfully"
@@ -613,7 +606,7 @@ export default function CategoriesPage() {
                                         text-gray-500
                                     "
                                 >
-                                    No categories found
+                                    No Active Categories found
                                 </td>
 
                             </tr>

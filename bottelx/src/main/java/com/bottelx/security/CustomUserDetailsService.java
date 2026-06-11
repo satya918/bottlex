@@ -16,38 +16,31 @@ import com.bottelx.repository.UserRepository;
 
 @Service
 public class CustomUserDetailsService
-        implements UserDetailsService {
+                implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+        @Autowired
+        private UserRepository userRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(
-            String username)
-            throws UsernameNotFoundException {
+        @Override
+        public UserDetails loadUserByUsername(
+                        String username)
+                        throws UsernameNotFoundException {
 
-        User user = userRepository
-                .findByUserNameIgnoreCaseOrEmailIgnoreCase(
-                        username,
-                        username)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException(
-                                "User not found"));
+                User user = userRepository
+                                .findByUsernameOrEmailWithRoles(username)
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        Collection<? extends GrantedAuthority>
-                authorities =
-                user.getRoles()
-                        .stream()
-                        .map(role ->
-                                new SimpleGrantedAuthority(
-                                        "ROLE_" + role.getRoleName()))
-                        .collect(Collectors.toSet());
+                Collection<? extends GrantedAuthority> authorities = user.getRoles()
+                                .stream()
+                                .map(role -> new SimpleGrantedAuthority(
+                                                "ROLE_" + role.getRoleName()))
+                                .collect(Collectors.toSet());
 
-        return new CustomUserDetails(
-                user.getId(),
-                user.getUserName(),
-                user.getPassword(),
-                !user.isDeleted(),
-                authorities);
-    }
+                return new CustomUserDetails(
+                                user.getId(),
+                                user.getUserName(),
+                                user.getPassword(),
+                                !user.isDeleted(),
+                                authorities);
+        }
 }

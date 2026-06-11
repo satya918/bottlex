@@ -32,8 +32,7 @@ public class WithdrawTransaction {
     @PrePersist
     public void prePersist() {
 
-        createdAt =
-                Instant.now();
+        createdAt = Instant.now();
     }
 
     public UUID getId() {
@@ -45,8 +44,7 @@ public class WithdrawTransaction {
     }
 
     public void setUser(
-            User user
-    ) {
+            User user) {
         this.user = user;
     }
 
@@ -55,8 +53,7 @@ public class WithdrawTransaction {
     }
 
     public void setAmount(
-            BigDecimal amount
-    ) {
+            BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -65,8 +62,7 @@ public class WithdrawTransaction {
     }
 
     public void setUpiId(
-            String upiId
-    ) {
+            String upiId) {
         this.upiId = upiId;
     }
 
@@ -75,8 +71,7 @@ public class WithdrawTransaction {
     }
 
     public void setStatus(
-            String status
-    ) {
+            String status) {
         this.status = status;
     }
 

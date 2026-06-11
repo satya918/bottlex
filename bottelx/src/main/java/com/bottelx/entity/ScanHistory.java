@@ -6,18 +6,24 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "scan_history")
+@Table(name = "scan_history", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {
+                "user_id",
+                "qr_code_id"
+        })
+})
 public class ScanHistory {
 
     @Id
     @GeneratedValue
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
-    @ManyToOne
-    private Bottle bottle;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "qr_id")
+    private QRCode qrCode;
 
     private LocalDateTime scannedAt;
 
@@ -40,12 +46,12 @@ public class ScanHistory {
         this.user = user;
     }
 
-    public Bottle getBottle() {
-        return bottle;
+    public QRCode getQrCode() {
+        return qrCode;
     }
 
-    public void setBottle(Bottle bottle) {
-        this.bottle = bottle;
+    public void setQrCode(QRCode qrCode) {
+        this.qrCode = qrCode;
     }
 
     public LocalDateTime getScannedAt() {
@@ -53,8 +59,7 @@ public class ScanHistory {
     }
 
     public void setScannedAt(
-            LocalDateTime scannedAt
-    ) {
+            LocalDateTime scannedAt) {
         this.scannedAt = scannedAt;
     }
 }

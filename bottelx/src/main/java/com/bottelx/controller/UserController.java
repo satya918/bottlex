@@ -47,7 +47,7 @@ public class UserController {
 
                         User user = userRepository
                                         .findByUserNameIgnoreCaseOrEmailIgnoreCase(
-                                                                username,
+                                                        username,
                                                         username)
                                         .orElseThrow(
                                                         () -> new RuntimeException(

@@ -3,9 +3,7 @@ package com.bottelx.dto;
 
 public class VerifyQRResponse {
 
-    private boolean genuine;
-
-    private boolean suspicious;
+     private String status;
 
     private String productName;
 
@@ -17,25 +15,23 @@ public class VerifyQRResponse {
     }
 
     public VerifyQRResponse(
-            boolean genuine,
-            boolean suspicious,
+          String status,
             String productName,
             String batchNumber,
             String message
     ) {
-        this.genuine = genuine;
-        this.suspicious = suspicious;
+       this.status = status;
         this.productName = productName;
         this.batchNumber = batchNumber;
         this.message = message;
     }
 
-    public boolean isGenuine() {
-        return genuine;
+    public String getStatus() {
+        return status;
     }
 
-    public boolean isSuspicious() {
-        return suspicious;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getProductName() {

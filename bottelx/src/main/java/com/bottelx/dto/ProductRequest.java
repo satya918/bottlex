@@ -1,6 +1,5 @@
 package com.bottelx.dto;
 
-
 public class ProductRequest {
 
     private String productName;
@@ -14,8 +13,6 @@ public class ProductRequest {
     private Double price;
 
     private Integer stockQuantity;
-
-    private String manufacturer;
 
     private String categoryId;
 
@@ -67,14 +64,6 @@ public class ProductRequest {
         this.stockQuantity = stockQuantity;
     }
 
-    public String getManufacturer() {
-        return manufacturer;
-    }
-
-    public void setManufacturer(String manufacturer) {
-        this.manufacturer = manufacturer;
-    }
-
     public String getCategoryId() {
         return categoryId;
     }
@@ -83,6 +72,4 @@ public class ProductRequest {
         this.categoryId = categoryId;
     }
 
-
-    
 }

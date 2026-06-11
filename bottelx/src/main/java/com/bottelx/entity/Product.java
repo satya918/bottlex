@@ -38,7 +38,9 @@ public class Product {
 
     private Boolean active;
 
-    private String manufacturer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -128,12 +130,12 @@ public class Product {
         this.active = active;
     }
 
-    public String getManufacturer() {
-        return manufacturer;
+    public Company getCompany() {
+        return company;
     }
 
-    public void setManufacturer(String manufacturer) {
-        this.manufacturer = manufacturer;
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     public Category getCategory() {
@@ -164,7 +166,7 @@ public class Product {
     }
 
       public Product(String id, String productName, String productCode, String sku, String description, Double price,
-            Integer stockQuantity, Boolean active, String manufacturer, Category category, LocalDateTime createdAt,
+            Integer stockQuantity, Boolean active, Company company, Category category, LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         this.id = id;
         this.productName = productName;
@@ -174,7 +176,7 @@ public class Product {
         this.price = price;
         this.stockQuantity = stockQuantity;
         this.active = active;
-        this.manufacturer = manufacturer;
+        this.company = company;
         this.category = category;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -202,7 +204,7 @@ public class Product {
 
         private Boolean active;
 
-        private String manufacturer;
+        private Company company;
 
         private Category category;
 
@@ -250,8 +252,8 @@ public class Product {
             return this;
         }
 
-        public Builder manufacturer(String manufacturer) {
-            this.manufacturer = manufacturer;
+        public Builder company(Company company) {
+            this.company = company;
             return this;
         }
 
@@ -281,7 +283,7 @@ public class Product {
                     price,
                     stockQuantity,
                     active,
-                    manufacturer,
+                    company,
                     category,
                     createdAt,
                     updatedAt

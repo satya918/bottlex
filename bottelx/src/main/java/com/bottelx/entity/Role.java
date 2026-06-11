@@ -1,6 +1,5 @@
 package com.bottelx.entity;
 
- 
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -15,30 +14,20 @@ public class Role {
     @GeneratedValue
     private UUID id;
 
-    @Column(
-            unique = true,
-            nullable = false
-    )
+    @Column(unique = true, nullable = false)
     private String roleName;
 
     private String description;
 
     private boolean active = true;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "role_permissions",
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "role_permissions",
 
-            joinColumns = @JoinColumn(
-                    name = "role_id"
-            ),
+            joinColumns = @JoinColumn(name = "role_id"),
 
-            inverseJoinColumns = @JoinColumn(
-                    name = "permission_id"
-            )
-    )
-    private Set<Permission> permissions =
-            new HashSet<>();
+            inverseJoinColumns = @JoinColumn(name = "permission_id"))
+    private Set<Permission> permissions = new HashSet<>();
 
     private Long createdAt;
 

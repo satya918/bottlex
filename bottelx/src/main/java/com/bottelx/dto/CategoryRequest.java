@@ -9,6 +9,9 @@ public class CategoryRequest {
 
     private String description;
 
+
+   
+
     // =========================================
     // GETTERS & SETTERS
     // =========================================

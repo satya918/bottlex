@@ -46,7 +46,7 @@ public class User {
     @JoinColumn(name = "company_id")
     private Company company;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
 
             joinColumns = @JoinColumn(name = "user_id"),

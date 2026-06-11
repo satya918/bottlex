@@ -11,6 +11,7 @@ import com.bottelx.dto.ProductFraudResponse;
 import com.bottelx.services.DashboardService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/dashboard")
@@ -18,37 +19,37 @@ public class DashboardController {
     @Autowired
     private DashboardService dashboardService;
 
-    @GetMapping("/stats")
-    public DashboardStatsResponse stats() {
+    @GetMapping("/stats/{companyId}")
+    public DashboardStatsResponse stats(@PathVariable UUID companyId) {
 
-        return dashboardService.getStats();
+        return dashboardService.getStats(companyId);
     }
 
-    @GetMapping("/counterfeit-alerts")
-    public List<CounterfeitAlertResponse> alerts() {
+    @GetMapping("/counterfeit-alerts/{companyId}")
+    public List<CounterfeitAlertResponse> alerts(@PathVariable  UUID companyId) {
 
         return dashboardService
-                .getCounterfeitAlerts();
+                .getCounterfeitAlerts(companyId);
     }
 
-    @GetMapping("/product-fraud")
-    public List<ProductFraudResponse> productFraud() {
+    @GetMapping("/product-fraud/{companyId}")
+    public List<ProductFraudResponse> productFraud(@PathVariable UUID companyId) {
 
         return dashboardService
-                .getProductFraudAnalytics();
+                .getProductFraudAnalytics(companyId);
     }
 
-    @GetMapping("/recent-batches")
-    public List<BatchResponse> recentBatches() {
+    @GetMapping("/recent-batches/{companyId}")
+    public List<BatchResponse> recentBatches(@PathVariable UUID companyId ) {
 
         return dashboardService
-                .getRecentBatches();
+                .getRecentBatches(companyId);
     }
 
-    @GetMapping("/distributor-risk")
-    public List<DistributorRiskResponse> distributorRisk() {
+    @GetMapping("/distributor-risk/{companyId}")
+    public List<DistributorRiskResponse> distributorRisk(@PathVariable UUID companyId) {
 
         return dashboardService
-                .getDistributorRisk();
+                .getDistributorRisk(companyId);
     }
 }

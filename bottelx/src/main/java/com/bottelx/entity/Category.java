@@ -1,12 +1,5 @@
 package com.bottelx.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -31,6 +24,9 @@ public class Category {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     // =========================================
     // CONSTRUCTORS
@@ -46,8 +42,8 @@ public class Category {
             String description,
             Boolean active,
             LocalDateTime createdAt,
-            LocalDateTime updatedAt
-    ) {
+            LocalDateTime updatedAt,
+            Company company) {
         this.id = id;
         this.categoryName = categoryName;
         this.categoryCode = categoryCode;
@@ -55,6 +51,7 @@ public class Category {
         this.active = active;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.company = company;
     }
 
     // =========================================
@@ -117,6 +114,14 @@ public class Category {
         this.updatedAt = updatedAt;
     }
 
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
     // =========================================
     // BUILDER
     // =========================================
@@ -140,6 +145,8 @@ public class Category {
         private LocalDateTime createdAt;
 
         private LocalDateTime updatedAt;
+
+        private Company company;
 
         public Builder id(String id) {
             this.id = id;
@@ -175,6 +182,10 @@ public class Category {
             this.updatedAt = updatedAt;
             return this;
         }
+        public Builder company(Company company) {
+            this.company = company;
+            return this;
+        }
 
         public Category build() {
 
@@ -185,8 +196,8 @@ public class Category {
                     description,
                     active,
                     createdAt,
-                    updatedAt
-            );
+                    updatedAt,
+                    company);
         }
     }
 }

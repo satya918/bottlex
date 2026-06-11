@@ -3,10 +3,9 @@ package com.bottelx.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 
 // ============================================
+
 // BatchController.java
 // ============================================
-
-
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,119 +15,78 @@ import com.bottelx.dto.BatchResponse;
 import com.bottelx.services.BatchService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/batches")
 public class BatchController {
-@Autowired
-    private  BatchService batchService;
+        @Autowired
+        private BatchService batchService;
 
-    public BatchController(
-            BatchService batchService
-    ) {
-        this.batchService = batchService;
-    }
+        @PostMapping("/{companyId}")
+        public ResponseEntity<BatchResponse> createBatch(
+                        @PathVariable UUID companyId,
+                        @RequestBody BatchRequest request) {
 
-    // =========================================
-    // CREATE BATCH
-    // =========================================
+                return ResponseEntity.ok(
+                                batchService.createBatch(
+                                                companyId,
+                                                request));
+        }
 
-    @PostMapping
-    public ResponseEntity<BatchResponse>
-    createBatch(
-            @RequestBody
-            BatchRequest request
-    ) {
+        @GetMapping("/{companyId}")
+        public ResponseEntity<List<BatchResponse>> getAllBatches(
+                        @PathVariable UUID companyId) {
 
-        return ResponseEntity.ok(
-                batchService.createBatch(
-                        request
-                )
-        );
-    }
+                return ResponseEntity.ok(
+                                batchService.getAllBatches(companyId));
+        }
 
-    // =========================================
-    // GET ALL BATCHES
-    // =========================================
+        @GetMapping("/{companyId}/{id}")
+        public ResponseEntity<BatchResponse> getBatchById(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id) {
 
-    @GetMapping
-    public ResponseEntity<List<BatchResponse>>
-    getAllBatches() {
+                return ResponseEntity.ok(
+                                batchService.getBatchById(companyId, id));
+        }
 
-        return ResponseEntity.ok(
-                batchService.getAllBatches()
-        );
-    }
+        @PutMapping("/{companyId}/{id}")
+        public ResponseEntity<BatchResponse> updateBatch(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id,
+                        @RequestBody BatchRequest request) {
 
-    // =========================================
-    // GET BATCH BY ID
-    // =========================================
+                return ResponseEntity.ok(
+                                batchService.updateBatch(
+                                                companyId,
+                                                id,
+                                                request));
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BatchResponse>
-    getBatchById(
-            @PathVariable String id
-    ) {
+        @DeleteMapping("/{companyId}/{id}")
+        public ResponseEntity<String> deleteBatch(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id) {
 
-        return ResponseEntity.ok(
-                batchService.getBatchById(id)
-        );
-    }
+                batchService.deleteBatch(companyId, id);
 
-    // =========================================
-    // UPDATE BATCH
-    // =========================================
+                return ResponseEntity.ok(
+                                "Batch deleted successfully");
+        }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BatchResponse>
-    updateBatch(
-            @PathVariable String id,
-            @RequestBody BatchRequest request
-    ) {
+        @PatchMapping("/{companyId}/{id}/status")
+        public ResponseEntity<String> toggleStatus(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id,
+                        @RequestParam Boolean active) {
 
-        return ResponseEntity.ok(
-                batchService.updateBatch(
-                        id,
-                        request
-                )
-        );
-    }
+                batchService.toggleStatus(
+                                companyId,
+                                id,
+                                active);
 
-    // =========================================
-    // DELETE BATCH
-    // =========================================
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String>
-    deleteBatch(
-            @PathVariable String id
-    ) {
-
-        batchService.deleteBatch(id);
-
-        return ResponseEntity.ok(
-                "Batch deleted successfully"
-        );
-    }
-
-    // =========================================
-    // TOGGLE STATUS
-    // =========================================
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<String>
-    toggleStatus(
-            @PathVariable String id,
-            @RequestParam Boolean active
-    ) {
-
-        batchService.toggleStatus(
-                id,
-                active
-        );
-
-        return ResponseEntity.ok(
-                "Batch status updated"
-        );
-    }
+                return ResponseEntity.ok(
+                                "Batch status updated");
+        }
 }

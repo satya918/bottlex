@@ -13,12 +13,17 @@ import com.bottelx.dto.BatchRequest;
 import com.bottelx.dto.BatchResponse;
 import com.bottelx.entity.Batch;
 import com.bottelx.entity.Product;
+import com.bottelx.entity.QRCode;
 import com.bottelx.repository.BatchRepository;
 import com.bottelx.repository.ProductRepository;
+import com.bottelx.repository.QRCodeRepository;
 import com.bottelx.services.BatchService;
+
+import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BatchServiceImpl
@@ -28,29 +33,29 @@ public class BatchServiceImpl
         @Autowired
         private ProductRepository productRepository;
 
-        public BatchServiceImpl(
-                        BatchRepository batchRepository,
-                        ProductRepository productRepository) {
-                this.batchRepository = batchRepository;
-                this.productRepository = productRepository;
-        }
+        @Autowired
+        private QRCodeRepository qrCodeRepository;
 
         @Override
         public BatchResponse createBatch(
+                        UUID companyId,
                         BatchRequest request) {
 
-                if (batchRepository.existsByBatchNumber(
-                                request.getBatchNumber())) {
+                if (batchRepository
+                                .existsByBatchNumberAndCompany_Id(
+                                                request.getBatchNumber(),
+                                                companyId)) {
 
                         throw new RuntimeException(
                                         "Batch number already exists");
                 }
 
-                Product product = productRepository.findById(
-                                request.getProductId()).orElseThrow(
-                                                () -> new RuntimeException(
-                                                                "Product not found"));
-
+                Product product = productRepository
+                                .findByIdAndCompany_Id(
+                                                request.getProductId(),
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Product not found"));
                 Batch batch = new Batch();
 
                 batch.setBatchNumber(
@@ -78,15 +83,19 @@ public class BatchServiceImpl
                 batch.setUpdatedAt(
                                 LocalDateTime.now());
 
+                batch.setCompany(product.getCompany());
+
                 batchRepository.save(batch);
 
                 return mapToResponse(batch);
         }
 
         @Override
-        public List<BatchResponse> getAllBatches() {
+        public List<BatchResponse> getAllBatches(
+                        UUID companyId) {
 
-                return batchRepository.findAll()
+                return batchRepository
+                                .findByCompany_IdAndActiveTrue(companyId)
                                 .stream()
                                 .map(this::mapToResponse)
                                 .toList();
@@ -94,9 +103,13 @@ public class BatchServiceImpl
 
         @Override
         public BatchResponse getBatchById(
+                        UUID companyId,
                         String id) {
 
-                Batch batch = batchRepository.findById(id)
+                Batch batch = batchRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
                                 .orElseThrow(() -> new RuntimeException(
                                                 "Batch not found"));
 
@@ -105,17 +118,23 @@ public class BatchServiceImpl
 
         @Override
         public BatchResponse updateBatch(
+                        UUID companyId,
                         String id,
                         BatchRequest request) {
 
-                Batch batch = batchRepository.findById(id)
+                Batch batch = batchRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
                                 .orElseThrow(() -> new RuntimeException(
                                                 "Batch not found"));
 
-                Product product = productRepository.findById(
-                                request.getProductId()).orElseThrow(
-                                                () -> new RuntimeException(
-                                                                "Product not found"));
+                Product product = productRepository
+                                .findByIdAndCompany_Id(
+                                                request.getProductId(),
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Product not found"));
 
                 batch.setBatchNumber(
                                 request.getBatchNumber());
@@ -133,6 +152,7 @@ public class BatchServiceImpl
 
                 batch.setUpdatedAt(
                                 LocalDateTime.now());
+                batch.setCompany(product.getCompany());
 
                 batchRepository.save(batch);
 
@@ -141,17 +161,37 @@ public class BatchServiceImpl
 
         @Override
         public void deleteBatch(
+                        UUID companyId,
                         String id) {
 
-                batchRepository.deleteById(id);
+                Batch batch = batchRepository
+                                .findByIdAndCompany_IdAndActiveTrue(
+                                                id,
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Batch not found"));
+
+                batch.setActive(false);
+
+                List<QRCode> qrCodes = qrCodeRepository.findByBatch_Id(id);
+
+                qrCodes.forEach(qr -> qr.setActive(false));
+
+                qrCodeRepository.saveAll(qrCodes);
+
+                batchRepository.save(batch);
         }
 
         @Override
         public void toggleStatus(
+                        UUID companyId,
                         String id,
                         Boolean active) {
 
-                Batch batch = batchRepository.findById(id)
+                Batch batch = batchRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
                                 .orElseThrow(() -> new RuntimeException(
                                                 "Batch not found"));
 

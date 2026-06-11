@@ -1,5 +1,7 @@
 package com.bottelx.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -20,57 +22,63 @@ import com.bottelx.services.ProductService;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-    @Autowired
-    private ProductService productService;
+        @Autowired
+        private ProductService productService;
 
-    @PostMapping
-    public ResponseEntity<?> create(
-            @RequestBody ProductRequest request) {
+        @PostMapping("/{companyId}")
+        public ResponseEntity<?> create(
+                        @RequestBody ProductRequest request,
+                        @PathVariable UUID companyId) {
 
-        return ResponseEntity.ok(
-                productService.create(request));
-    }
+                return ResponseEntity.ok(
+                                productService.create(request, companyId));
+        }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(
-            @PathVariable String id,
-            @RequestBody ProductRequest request) {
+        @PutMapping("/{companyId}/{id}")
+        public ResponseEntity<?> update(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id,
+                        @RequestBody ProductRequest request) {
 
-        return ResponseEntity.ok(
-                productService.update(id, request));
-    }
+                return ResponseEntity.ok(
+                                productService.update(companyId, id, request));
+        }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(
-            @PathVariable String id) {
+        @DeleteMapping("/{companyId}/{id}")
+        public ResponseEntity<?> delete(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id) {
 
-        productService.delete(id);
+                productService.delete(companyId, id);
 
-        return ResponseEntity.ok().build();
-    }
+                return ResponseEntity.ok().build();
+        }
 
-    @GetMapping
-    public ResponseEntity<?> getAll(
-            @RequestParam(defaultValue = "") String search,
+        @GetMapping("/{companyId}")
+        public ResponseEntity<?> getAll(
+                        @PathVariable UUID companyId,
+                        @RequestParam(defaultValue = "") String search,
 
-            Pageable pageable) {
+                        Pageable pageable) {
 
-        return ResponseEntity.ok(
-                productService.getAll(
-                        search,
-                        pageable));
-    }
+                return ResponseEntity.ok(
+                                productService.getAll(
+                                                companyId,
+                                                search,
+                                                pageable));
+        }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<?> toggleStatus(
-            @PathVariable String id,
+        @PatchMapping("/{companyId}/{id}/status")
+        public ResponseEntity<?> toggleStatus(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id,
+                        @RequestParam Boolean active) {
 
-            @RequestParam Boolean active) {
+                productService.toggleStatus(
+                                companyId,
+                                id,
+                                active);
 
-        productService.toggleStatus(
-                id,
-                active);
-
-        return ResponseEntity.ok().build();
-    }
+                return ResponseEntity.ok().build();
+        }
 }

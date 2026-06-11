@@ -13,57 +13,64 @@ import org.springframework.data.repository.query.Param;
 import com.bottelx.entity.User;
 
 public interface UserRepository
-        extends JpaRepository<User, UUID> {
+                extends JpaRepository<User, UUID> {
 
-    Optional<User> findByPhone(String phone);
+        Optional<User> findByPhone(String phone);
 
-    Optional<User> findByEmail(
-            String email);
+        Optional<User> findByEmail(
+                        String email);
 
-    Optional<User> findByUserNameIgnoreCaseOrEmailIgnoreCase(
-            String userName,
-            String email);
+        Optional<User> findByUserNameIgnoreCaseOrEmailIgnoreCase(
+                        String userName,
+                        String email);
 
-    Optional<User> findByEmailIgnoreCase(String email);
+        Optional<User> findByEmailIgnoreCase(String email);
 
-    Optional<User> findByUserNameIgnoreCase(String userName);
+        Optional<User> findByUserNameIgnoreCase(String userName);
 
-    // @EntityGraph(attributePaths = { "roles", "company" })
-    // List<User> findByCompanyId(UUID companyId);
+        @Query("""
+                            SELECT DISTINCT u
+                            FROM User u
+                            LEFT JOIN FETCH u.company
+                            LEFT JOIN FETCH u.roles r
+                            LEFT JOIN FETCH r.permissions
+                            WHERE u.company.id = :companyId
+                        """)
+        Page<User> findByCompanyId(
+                        UUID companyId,
+                        Pageable pageable);
 
-    @Query("""
-                SELECT DISTINCT u
-                FROM User u
-                LEFT JOIN FETCH u.company
-                LEFT JOIN FETCH u.roles r
-                LEFT JOIN FETCH r.permissions
-                WHERE u.company.id = :companyId
-            """)
-    Page<User> findByCompanyId(
-            UUID companyId,
-            Pageable pageable);
+        @Query("""
+                        SELECT u.id
+                        FROM User u
+                        WHERE u.company.id = :companyId
+                        ORDER BY u.createdAt DESC
+                        """)
+        Page<UUID> findUserIdsByCompanyId(
+                        @Param("companyId") UUID companyId,
+                        Pageable pageable);
 
-    @Query("""
-            SELECT u.id
-            FROM User u
-            WHERE u.company.id = :companyId
-            ORDER BY u.createdAt DESC
-            """)
-    Page<UUID> findUserIdsByCompanyId(
-            @Param("companyId") UUID companyId,
-            Pageable pageable);
+        @Query("""
+                        SELECT DISTINCT u
+                        FROM User u
+                        LEFT JOIN FETCH u.roles r
+                        LEFT JOIN FETCH r.permissions
+                        LEFT JOIN FETCH u.company
+                        WHERE u.id IN :ids
+                        """)
+        List<User> findUsersWithRolesAndPermissions(
+                        @Param("ids") List<UUID> ids);
 
-    @Query("""
-            SELECT DISTINCT u
-            FROM User u
-            LEFT JOIN FETCH u.roles r
-            LEFT JOIN FETCH r.permissions
-            LEFT JOIN FETCH u.company
-            WHERE u.id IN :ids
-            """)
-    List<User> findUsersWithRolesAndPermissions(
-            @Param("ids") List<UUID> ids);
+        Page<User> findAll(Pageable pageable);
 
-    Page<User> findAll(Pageable pageable);
+        @Query("""
+                            SELECT DISTINCT u
+                            FROM User u
+                            LEFT JOIN FETCH u.roles
+                            WHERE LOWER(u.userName) = LOWER(:username)
+                               OR LOWER(u.email) = LOWER(:username)
+                        """)
+        Optional<User> findByUsernameOrEmailWithRoles(
+                        @Param("username") String username);
 
 }

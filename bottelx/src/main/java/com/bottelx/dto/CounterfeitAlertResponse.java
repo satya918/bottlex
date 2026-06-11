@@ -3,13 +3,13 @@ package com.bottelx.dto;
 
 public class CounterfeitAlertResponse {
 
-    private String id;
+     private String productId;
 
     private String product;
 
     private String location;
 
-    private int scans;
+    private long scans;
 
     private String risk;
 
@@ -17,21 +17,21 @@ public class CounterfeitAlertResponse {
     }
 
     public CounterfeitAlertResponse(
-            String id,
+            String productId,
             String product,
             String location,
-            int scans,
+            long scans,
             String risk
     ) {
-        this.id = id;
+        this.productId = productId;
         this.product = product;
         this.location = location;
         this.scans = scans;
         this.risk = risk;
     }
 
-    public String getId() {
-        return id;
+    public String getProductId() {
+        return productId;
     }
 
     public String getProduct() {
@@ -42,7 +42,7 @@ public class CounterfeitAlertResponse {
         return location;
     }
 
-    public int getScans() {
+    public long getScans() {
         return scans;
     }
 

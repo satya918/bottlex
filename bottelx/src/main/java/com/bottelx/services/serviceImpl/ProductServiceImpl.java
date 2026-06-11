@@ -1,5 +1,7 @@
 package com.bottelx.services.serviceImpl;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,127 +10,159 @@ import org.springframework.stereotype.Service;
 import com.bottelx.dto.ProductRequest;
 import com.bottelx.dto.ProductResponse;
 import com.bottelx.entity.Category;
+import com.bottelx.entity.Company;
 import com.bottelx.entity.Product;
 import com.bottelx.repository.CategoryRepository;
+import com.bottelx.repository.CompanyRepository;
 import com.bottelx.repository.ProductRepository;
 import com.bottelx.services.ProductService;
 
 @Service
 public class ProductServiceImpl
-        implements ProductService {
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private CategoryRepository categoryRepository;
+                implements ProductService {
+        @Autowired
+        private ProductRepository productRepository;
+        @Autowired
+        private CategoryRepository categoryRepository;
 
-    @Override
-    public ProductResponse create(
-            ProductRequest request) {
+        @Autowired
+        private CompanyRepository companyRepository;
 
-        Category category = categoryRepository.findById(
-                request.getCategoryId()).orElseThrow();
+        @Override
+        public ProductResponse create(
+                        ProductRequest request,
+                        UUID companyId) {
 
-        Product product = Product.builder()
-                .productName(request.getProductName())
-                .productCode(request.getProductCode())
-                .sku(request.getSku())
-                .description(request.getDescription())
-                .price(request.getPrice())
-                .stockQuantity(request.getStockQuantity())
-                .manufacturer(request.getManufacturer())
-                .category(category)
-                .active(true)
-                .build();
+                Category category = categoryRepository
+                                .findByIdAndCompany_Id(
+                                                request.getCategoryId(),
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        return map(
-                productRepository.save(product));
-    }
+                Company company = companyRepository.findById(
+                                companyId).orElseThrow(() -> new RuntimeException("Company not found"));
 
-    @Override
-    public ProductResponse update(
-            String id,
-            ProductRequest request) {
+                Product product = Product.builder()
+                                .productName(request.getProductName())
+                                .productCode(request.getProductCode())
+                                .sku(request.getSku())
+                                .description(request.getDescription())
+                                .price(request.getPrice())
+                                .stockQuantity(request.getStockQuantity())
+                                .company(company)
+                                .category(category)
+                                .active(true)
+                                .build();
 
-        Product product = productRepository.findById(id)
-                .orElseThrow();
+                return map(
+                                productRepository.save(product));
+        }
 
-        Category category = categoryRepository.findById(
-                request.getCategoryId()).orElseThrow();
+        @Override
+        public ProductResponse update(
+                        UUID companyId,
+                        String id,
+                        ProductRequest request) {
 
-        product.setProductName(
-                request.getProductName());
+                Product product = productRepository
+                                .findByIdAndCompany_Id(id, companyId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        product.setProductCode(
-                request.getProductCode());
+                // Category category = categoryRepository
+                // .findByIdAndCompany_Id(
+                // request.getCategoryId(),
+                // companyId)
+                // .orElseThrow(() -> new RuntimeException("Category not found"));
+                Company company = companyRepository.findById(
+                                companyId).orElseThrow(() -> new RuntimeException("Company not found"));
 
-        product.setSku(
-                request.getSku());
+                product.setProductName(
+                                request.getProductName());
 
-        product.setDescription(
-                request.getDescription());
+                product.setProductCode(
+                                request.getProductCode());
 
-        product.setPrice(
-                request.getPrice());
+                product.setSku(
+                                request.getSku());
 
-        product.setStockQuantity(
-                request.getStockQuantity());
+                product.setDescription(
+                                request.getDescription());
 
-        product.setManufacturer(
-                request.getManufacturer());
+                product.setPrice(
+                                request.getPrice());
 
-        product.setCategory(category);
+                product.setStockQuantity(
+                                request.getStockQuantity());
 
-        return map(
-                productRepository.save(product));
-    }
+                product.setCompany(
+                                company);
 
-    @Override
-    public void delete(String id) {
+                // product.setCategory(category);
 
-        productRepository.deleteById(id);
-    }
+                return map(
+                                productRepository.save(product));
+        }
 
-    @Override
-    public Page<ProductResponse> getAll(
-            String search,
-            Pageable pageable) {
+        @Override
+        public void delete(
+                        UUID companyId,
+                        String id) {
 
-        return productRepository
-                .findByProductNameContainingIgnoreCase(
-                        search,
-                        pageable)
-                .map(this::map);
-    }
+                Product product = productRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    @Override
-    public void toggleStatus(
-            String id,
-            Boolean active) {
+                productRepository.delete(product);
+        }
 
-        Product product = productRepository.findById(id)
-                .orElseThrow();
+        @Override
+        public Page<ProductResponse> getAll(
+                        UUID companyId,
+                        String search,
+                        Pageable pageable) {
 
-        product.setActive(active);
+                return productRepository
+                                .findByCompany_IdAndProductNameContainingIgnoreCaseAndActiveTrue(
+                                                companyId,
+                                                search,
+                                                pageable)
+                                .map(this::map);
+        }
 
-        productRepository.save(product);
-    }
+        @Override
+        public void toggleStatus(
+                        UUID companyId,
+                        String id,
+                        Boolean active) {
 
-    private ProductResponse map(
-            Product product) {
+                Product product = productRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        return ProductResponse.builder()
-                .id(product.getId())
-                .productName(product.getProductName())
-                .productCode(product.getProductCode())
-                .sku(product.getSku())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .stockQuantity(product.getStockQuantity())
-                .active(product.getActive())
-                .manufacturer(product.getManufacturer())
-                .categoryName(
-                        product.getCategory()
-                                .getCategoryName())
-                .build();
-    }
+                product.setActive(active);
+
+                productRepository.save(product);
+        }
+
+        private ProductResponse map(
+                        Product product) {
+
+                return ProductResponse.builder()
+                                .id(product.getId())
+                                .productName(product.getProductName())
+                                .productCode(product.getProductCode())
+                                .sku(product.getSku())
+                                .description(product.getDescription())
+                                .price(product.getPrice())
+                                .stockQuantity(product.getStockQuantity())
+                                .active(product.getActive())
+                                .categoryName(
+                                                product.getCategory()
+                                                                .getCategoryName())
+                                .build();
+        }
 }

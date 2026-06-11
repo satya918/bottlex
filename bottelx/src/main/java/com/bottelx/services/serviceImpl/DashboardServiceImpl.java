@@ -1,174 +1,132 @@
 package com.bottelx.services.serviceImpl;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-// import org.springframework.beans.factory.annotation.Autowired;
- import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.bottelx.dto.BatchResponse;
 import com.bottelx.dto.CounterfeitAlertResponse;
 import com.bottelx.dto.DashboardStatsResponse;
 import com.bottelx.dto.DistributorRiskResponse;
 import com.bottelx.dto.ProductFraudResponse;
-// import com.bottelx.dto.BatchResponse;
-// import com.bottelx.dto.CounterfeitAlertResponse;
-// import com.bottelx.dto.DashboardStatsResponse;
-// import com.bottelx.dto.DistributorRiskResponse;
-// import com.bottelx.dto.ProductFraudResponse;
-// import com.bottelx.entity.Batch;
-// import com.bottelx.repository.BatchRepository;
-// import com.bottelx.repository.QRScanLogRepository;
- import com.bottelx.services.DashboardService;
+import com.bottelx.entity.Batch;
+import com.bottelx.entity.Product;
+import com.bottelx.repository.BatchRepository;
+import com.bottelx.repository.ProductRepository;
+import com.bottelx.repository.QRScanLogRepository;
 
-// import java.util.List;
-// import java.util.stream.Collectors;
+import com.bottelx.services.DashboardService;
 
- @Service
- public class DashboardServiceImpl
-                 implements DashboardService {
+@Service
+public class DashboardServiceImpl
+        implements DashboardService {
 
-        @Override
-                 public DashboardStatsResponse getStats() {
-                 // TODO Auto-generated method stub
-                 throw new UnsupportedOperationException("Unimplemented method 'getStats'");
-                 }
+    @Autowired
+    private QRScanLogRepository qrScanLogRepository;
 
-                 @Override
-                 public List<CounterfeitAlertResponse> getCounterfeitAlerts() {
-                 // TODO Auto-generated method stub
-                 throw new UnsupportedOperationException("Unimplemented method 'getCounterfeitAlerts'");
-                 }
+    @Autowired
+    private ProductRepository productRepository;
 
-                 @Override
-                 public List<ProductFraudResponse> getProductFraudAnalytics() {
-                 // TODO Auto-generated method stub
-                 throw new UnsupportedOperationException("Unimplemented method 'getProductFraudAnalytics'");
-                 }
+    @Autowired
+    private BatchRepository batchRepository;
 
-                 @Override
-                 public List<BatchResponse> getRecentBatches() {
-                 // TODO Auto-generated method stub
-                 throw new UnsupportedOperationException("Unimplemented method 'getRecentBatches'");
-                 }
+    @Override
+    public DashboardStatsResponse getStats(UUID companyId) {
 
-                 @Override
-                 public List<DistributorRiskResponse> getDistributorRisk() {
-                 // TODO Auto-generated method stub
-                 throw new UnsupportedOperationException("Unimplemented method 'getDistributorRisk'");
-                 }
-//         @Autowired
-//         private QRScanLogRepository qrScanLogRepository;
-//         @Autowired
-//         private BatchRepository batchRepository;
+        long totalScans = qrScanLogRepository
+                .countByCompanyId(companyId);
 
-//         @Override
-//         public DashboardStatsResponse getStats() {
+        long authenticBottles = qrScanLogRepository
+                .countByCompany_IdAndScanStatus(
+                        companyId,
+                        "AUTHENTIC");
 
-//                 long totalScans = qrScanLogRepository.count();
+        long counterfeitAlerts = qrScanLogRepository
+                .countByCompany_IdAndScanStatus(
+                        companyId,
+                        "COUNTERFEIT");
 
-//                 long authentic = qrScanLogRepository
-//                                 .countByScanStatus(
-//                                                 "GENUINE");
+        long duplicateQr = qrScanLogRepository
+                .countByCompany_IdAndScanStatus(
+                        companyId,
+                        "SAME_USER_DUPLICATE_SCAN");
 
-//                 long counterfeit = qrScanLogRepository
-//                                 .countByScanStatus(
-//                                                 "FAKE");
+        return new DashboardStatsResponse(
+                totalScans,
+                authenticBottles,
+                counterfeitAlerts,
+                duplicateQr);
+    }
 
-//                 long duplicate = qrScanLogRepository
-//                                 .countByScanStatus(
-//                                                 "DUPLICATE");
+    @Override
+    public List<CounterfeitAlertResponse> getCounterfeitAlerts(UUID companyId) {
+        return qrScanLogRepository.findCounterfeitAlerts(companyId);
+    }
 
-//                 return new DashboardStatsResponse(
-//                                 totalScans,
-//                                 authentic,
-//                                 counterfeit,
-//                                 duplicate);
-//         }
+    @Override
+    public List<ProductFraudResponse> getProductFraudAnalytics(UUID companyId) {
 
-//         @Override
-//         public List<CounterfeitAlertResponse> getCounterfeitAlerts() {
+        List<Product> products = productRepository
+                .findAllByCompany_IdAndActiveTrue(
+                        companyId);
 
-//                 return qrScanLogRepository
-//                                 .findTop10ByOrderByCreatedAtDesc()
-//                                 .stream()
-//                                 .map(scan -> new CounterfeitAlertResponse(
-//                                                 scan.getId(),
-//                                                 scan.getQrCode(),
-//                                                 scan.getIpAddress(),
-//                                                 scan.getScanStatus(),
-                                                                
-//                                                                ))
-                                                
-//                                 .collect(Collectors.toList());
-//         }
+        return products.stream()
+                .map(product -> {
 
-//         @Override
-//         public List<ProductFraudResponse> getProductFraudAnalytics() {
+                    long totalScans = qrScanLogRepository
+                            .countByProductId(
+                                    product.getId());
 
-//                 return List.of(
+                    long fakeScans = qrScanLogRepository
+                            .countFakeScansByProductId(
+                                    product.getId());
 
-//                                 new ProductFraudResponse(
-//                                                 "Premium Whiskey",
-//                                                 "14%"),
+                    double percentage = totalScans == 0
+                            ? 0
+                            : (fakeScans * 100.0)
+                                    / totalScans;
 
-//                                 new ProductFraudResponse(
-//                                                 "Beer Can 500ml",
-//                                                 "2%"),
+                    return new ProductFraudResponse(
+                            product.getProductName(),
+                            String.format(
+                                    "%.1f%%",
+                                    percentage));
+                })
+                .toList();
+    }
 
-//                                 new ProductFraudResponse(
-//                                                 "Vodka Elite",
-//                                                 "21%"));
-//         }
+    @Override
+    public List<BatchResponse> getRecentBatches(UUID companyId) {
+        return batchRepository
+                .findTop10ByCompany_IdOrderByCreatedAtDesc(companyId)
+                .stream()
+                .map(this::mapBatch)
+                .collect(Collectors.toList());
+    }
 
-//         @Override
-//         public List<BatchResponse> getRecentBatches() {
+    @Override
+    public List<DistributorRiskResponse> getDistributorRisk(UUID companyId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getDistributorRisk'");
+    }
 
-//                 return batchRepository
-//                                 .findTop10ByOrderByCreatedAtDesc()
-//                                 .stream()
-//                                 .map(this::mapBatch)
-//                                 .collect(Collectors.toList());
-//         }
+    private BatchResponse mapBatch(
+            Batch batch) {
 
-//         @Override
-//         public List<DistributorRiskResponse> getDistributorRisk() {
+        return new BatchResponse(
+                batch.getId(),
+                batch.getBatchNumber(),
+                batch.getQuantity(),
+                batch.getRemainingQuantity(),
+                batch.getProduct().getId(),
+                batch.getProduct()
+                        .getProductName(),
+                batch.getManufacturingDate(),
+                batch.getExpiryDate(),
 
-//                 return List.of(
-
-//                                 new DistributorRiskResponse(
-//                                                 "1",
-//                                                 "XYZ Beverages",
-//                                                 3482,
-//                                                 "HIGH"),
-
-//                                 new DistributorRiskResponse(
-//                                                 "2",
-//                                                 "South India Distributors",
-//                                                 842,
-//                                                 "MEDIUM"));
-//         }
-
-//         private BatchResponse mapBatch(
-//                         Batch batch) {
-
-//                 return new BatchResponse(
-
-//                                 batch.getId(),
-
-//                                 batch.getBatchNumber(),
-//                                 batch.getQuantity(),
-//                                 batch.getRemainingQuantity(),
-
-//                                 batch.getProduct()
-//                                                 .getId(),
-
-//                                 batch.getProduct()
-//                                                 .getProductName(),
-
-//                                 batch.getManufacturingDate(),
-
-//                                 batch.getExpiryDate(),
-
-//                                 batch.getActive());
-//         }
- }
+                batch.getActive());
+    }
+}

@@ -1,6 +1,5 @@
 package com.bottelx.entity;
 
- 
 import jakarta.persistence.*;
 
 import java.util.UUID;
@@ -13,10 +12,7 @@ public class Permission {
     @GeneratedValue
     private UUID id;
 
-    @Column(
-            unique = true,
-            nullable = false
-    )
+    @Column(unique = true, nullable = false)
     private String permissionName;
 
     private String description;

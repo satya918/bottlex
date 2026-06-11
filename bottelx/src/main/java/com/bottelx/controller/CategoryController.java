@@ -9,6 +9,7 @@ import com.bottelx.dto.CategoryResponse;
 import com.bottelx.services.CategoryService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/categories")
@@ -16,18 +17,17 @@ public class CategoryController {
         @Autowired
         private CategoryService categoryService;
 
-       
-
         // =========================================
         // CREATE CATEGORY
         // =========================================
 
-        @PostMapping
+        @PostMapping("/{companyId}")
         public ResponseEntity<CategoryResponse> createCategory(
+                        @PathVariable UUID companyId,
                         @RequestBody CategoryRequest request) {
 
                 return ResponseEntity.ok(
-                                categoryService.createCategory(
+                                categoryService.createCategory(companyId,
                                                 request));
         }
 
@@ -35,13 +35,15 @@ public class CategoryController {
         // UPDATE CATEGORY
         // =========================================
 
-        @PutMapping("/{id}")
+        @PutMapping("/{companyId}/{id}")
         public ResponseEntity<CategoryResponse> updateCategory(
+                        @PathVariable UUID companyId,
+
                         @PathVariable String id,
                         @RequestBody CategoryRequest request) {
 
                 return ResponseEntity.ok(
-                                categoryService.updateCategory(
+                                categoryService.updateCategory(companyId,
                                                 id,
                                                 request));
         }
@@ -50,34 +52,37 @@ public class CategoryController {
         // GET ALL CATEGORIES
         // =========================================
 
-        @GetMapping
-        public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+        @GetMapping("/{companyId}")
+        public ResponseEntity<List<CategoryResponse>> getAllCategories(
+                        @PathVariable UUID companyId) {
 
                 return ResponseEntity.ok(
-                                categoryService.getAllCategories());
+                                categoryService.getAllCategories(companyId));
         }
 
         // =========================================
         // GET CATEGORY BY ID
         // =========================================
 
-        @GetMapping("/{id}")
+        @GetMapping("/{companyId}/{id}")
         public ResponseEntity<CategoryResponse> getCategoryById(
+                        @PathVariable UUID companyId,
                         @PathVariable String id) {
 
                 return ResponseEntity.ok(
-                                categoryService.getCategoryById(id));
+                                categoryService.getCategoryById(companyId, id));
         }
 
         // =========================================
         // DELETE CATEGORY
         // =========================================
 
-        @DeleteMapping("/{id}")
+        @DeleteMapping("/{companyId}/{id}")
         public ResponseEntity<String> deleteCategory(
+                        @PathVariable UUID companyId,
                         @PathVariable String id) {
 
-                categoryService.deleteCategory(id);
+                categoryService.deleteCategory(companyId, id);
 
                 return ResponseEntity.ok(
                                 "Category deleted successfully");
@@ -87,12 +92,14 @@ public class CategoryController {
         // TOGGLE STATUS
         // =========================================
 
-        @PatchMapping("/{id}/status")
+        @PatchMapping("/{companyId}/{id}/status")
         public ResponseEntity<String> toggleStatus(
+                        @PathVariable UUID companyId,
                         @PathVariable String id,
                         @RequestParam Boolean active) {
 
                 categoryService.toggleCategoryStatus(
+                                companyId,
                                 id,
                                 active);
 

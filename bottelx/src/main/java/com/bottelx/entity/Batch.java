@@ -3,32 +3,22 @@ package com.bottelx.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
-// ============================================
-// Batch.java
-// ============================================
-
-
 import jakarta.persistence.*;
 
-
-
 @Entity
-@Table(name = "batches")
+@Table(name = "batches", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_batch_company", columnNames = {
+                "batch_number",
+                "company_id"
+        })
+})
 public class Batch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String batchNumber;
 
     @Column(nullable = false)
@@ -51,9 +41,9 @@ public class Batch {
 
     private LocalDateTime updatedAt;
 
-    // =========================================
-    // GETTERS & SETTERS
-    // =========================================
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     public String getId() {
         return id;
@@ -135,8 +125,11 @@ public class Batch {
         this.updatedAt = updatedAt;
     }
 
-    public Object getStatus() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getStatus'");
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 }

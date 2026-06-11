@@ -3,6 +3,7 @@ package com.bottelx.services;
 
 
 import java.util.List;
+import java.util.UUID;
 
 import com.bottelx.dto.BatchResponse;
 import com.bottelx.dto.CounterfeitAlertResponse;
@@ -12,17 +13,17 @@ import com.bottelx.dto.ProductFraudResponse;
 
 public interface DashboardService {
 
-    DashboardStatsResponse getStats();
+    DashboardStatsResponse getStats(UUID companyId);
 
     List<CounterfeitAlertResponse>
-    getCounterfeitAlerts();
+    getCounterfeitAlerts(UUID companyId);
 
     List<ProductFraudResponse>
-    getProductFraudAnalytics();
+    getProductFraudAnalytics(UUID companyId);
 
     List<BatchResponse>
-    getRecentBatches();
+    getRecentBatches(UUID companyId);
 
     List<DistributorRiskResponse>
-    getDistributorRisk();
+    getDistributorRisk(UUID companyId);
 }

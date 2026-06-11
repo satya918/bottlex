@@ -8,27 +8,29 @@ import org.springframework.web.bind.annotation.*;
 import com.bottelx.dto.QrScanRequest;
 import com.bottelx.services.ScanService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/scan")
-@CrossOrigin("*")
 public class ScanController {
     @Autowired
-    private  ScanService scanService;
+    private ScanService scanService;
 
     public ScanController(
-            ScanService scanService
-    ) {
+            ScanService scanService) {
 
         this.scanService = scanService;
     }
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyQr(
-            @RequestBody QrScanRequest request, Authentication authentication
-    ) {
-
-        String response =
-                scanService.verifyQr(request, authentication);
+            @RequestBody QrScanRequest request, Authentication authentication, HttpServletRequest httpRequest) {
+        String ip = httpRequest.getRemoteAddr();
+        String host = httpRequest.getRemoteHost();
+        String user = httpRequest.getRemoteUser();
+        System.out.println("------------------------------------------------------------");
+        System.out.println("--------------------IP: " + ip + ", Host: " + host + ", User: " + user);
+        String response = scanService.verifyQr(request, authentication, ip);
 
         return ResponseEntity.ok(response);
     }

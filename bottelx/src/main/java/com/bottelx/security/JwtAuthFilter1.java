@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,30 +25,27 @@ public class JwtAuthFilter1 extends OncePerRequestFilter {
     @Autowired
     private TokenBlacklist tokenBlacklist;
 
-    @Override
-    protected void doFilterInternal(
+   @Override
+protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain)
+        throws ServletException, IOException {
 
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
-        System.out.println("🔥 JwtAuthFilter invoked");
-        // PUBLIC APIs
-        String path = request.getServletPath();
-        if (path.startsWith("/api/auth/")) {
+    String path = request.getServletPath();
 
-            filterChain.doFilter(
-                    request,
-                    response);
+    if (path.startsWith("/api/auth/*")) {
+        filterChain.doFilter(request, response);
+        return;
+    }
 
-            return;
-        }
-        String authHeader = request.getHeader("Authorization");
-        System.out.println("HEADER = " + authHeader);
+    String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            String token = authHeader.substring(7);
+        String token = authHeader.substring(7);
+
+        try {
 
             if (tokenBlacklist.isBlacklisted(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -59,23 +58,50 @@ public class JwtAuthFilter1 extends OncePerRequestFilter {
             if (username != null &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(username);
 
                 if (jwtUtil.validateAccessToken(token, userDetails)) {
 
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                            userDetails, null,
-                            userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities());
 
                     SecurityContextHolder.getContext()
                             .setAuthentication(auth);
-                    System.out.println("AUTH SET = " + auth.getAuthorities());
-
                 }
             }
-        }
 
-        filterChain.doFilter(request, response);
+        } catch (ExpiredJwtException ex) {
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            response.getWriter().write("""
+                {
+                  "message":"Token expired"
+                }
+                """);
+
+            return;
+
+        } catch (JwtException ex) {
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            response.getWriter().write("""
+                {
+                  "message":"Invalid token"
+                }
+                """);
+
+            return;
+        }
     }
 
+    filterChain.doFilter(request, response);
+}
 }

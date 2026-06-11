@@ -1,6 +1,5 @@
 package com.bottelx.entity;
 
-
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -25,23 +24,59 @@ public class QRScanLog {
 
     private LocalDateTime createdAt;
 
-
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "qr_id")
     private QRCode qr;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "state")
+    private String state;
+
+    @Column(name = "country")
+    private String country;
 
     public QRScanLog() {
     }
 
     @PrePersist
     public void prePersist() {
-        this.scannedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+
+        if (this.scannedAt == null) {
+            this.scannedAt = LocalDateTime.now();
+        }
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        this.createdAt = LocalDateTime.now();
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public String getId() {
@@ -96,5 +131,45 @@ public class QRScanLog {
         return createdAt;
     }
 
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
     
+
 }

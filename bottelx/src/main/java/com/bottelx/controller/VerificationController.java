@@ -3,6 +3,7 @@ package com.bottelx.controller;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.bottelx.dto.VerifyQRRequest;
@@ -11,7 +12,6 @@ import com.bottelx.services.VerificationService;
 
 @RestController
 @RequestMapping("/api/public/verify")
-@CrossOrigin("*")
 public class VerificationController {
     @Autowired
     private VerificationService verificationService;
@@ -19,10 +19,11 @@ public class VerificationController {
     @PostMapping
     public VerifyQRResponse verify(
             @RequestBody VerifyQRRequest request,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest,  Authentication authentication
+                       ) {
 
         return verificationService.verifyQRCode(
                 request,
-                httpRequest);
+                httpRequest, authentication);
     }
 }

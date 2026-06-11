@@ -1,12 +1,13 @@
 package com.bottelx.services.serviceImpl;
 
-
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.bottelx.dto.QRCodeRequest;
 import com.bottelx.dto.QRCodeResponse;
+import com.bottelx.dto.QRGenerationResponse;
 import com.bottelx.entity.Batch;
 import com.bottelx.entity.Product;
 import com.bottelx.entity.QRCode;
@@ -16,132 +17,141 @@ import com.bottelx.repository.QRCodeRepository;
 import com.bottelx.services.QRCodeService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class QRCodeServiceImpl
-        implements QRCodeService {
-@Autowired
-    private  QRCodeRepository qrCodeRepository;
-@Autowired
+                implements QRCodeService {
+        @Autowired
+        private QRCodeRepository qrCodeRepository;
+        @Autowired
+        private ProductRepository productRepository;
+        @Autowired
+        private BatchRepository batchRepository;
 
-    private  ProductRepository productRepository;
-@Autowired
+        @Override
+        public QRGenerationResponse  generateQRCode(
+                        QRCodeRequest request,
+                        UUID companyId) {
 
-    private  BatchRepository batchRepository;
+                Product product = productRepository
+                                .findByIdAndCompany_Id(
+                                                request.getProductId(),
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    public QRCodeServiceImpl(
-            QRCodeRepository qrCodeRepository,
-            ProductRepository productRepository,
-            BatchRepository batchRepository
-    ) {
-        this.qrCodeRepository = qrCodeRepository;
-        this.productRepository = productRepository;
-        this.batchRepository = batchRepository;
-    }
+                Batch batch = batchRepository
+                                .findByIdAndCompany_Id(
+                                                request.getBatchId(),
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("Batch not found"));
 
-    @Override
-    public QRCodeResponse generateQRCode(
-            QRCodeRequest request
-    ) {
+                // Prevent duplicate generation
+                if (qrCodeRepository.countByBatch_Id(batch.getId()) > 0) {
+                        throw new RuntimeException(
+                                        "QR codes already generated for this batch");
+                }
 
-        Product product =
-                productRepository
-                        .findById(request.getProductId())
-                        .orElseThrow();
+                Integer quantity = batch.getQuantity();
 
-        Batch batch =
-                batchRepository
-                        .findById(request.getBatchId())
-                        .orElseThrow();
+                List<QRCode> qrCodes = new ArrayList<>();
 
-        QRCode qr = new QRCode();
+                for (int i = 1; i <= quantity; i++) {
 
-        qr.setQrCode(
-                UUID.randomUUID().toString()
-        );
+                        QRCode qr = new QRCode();
 
-        qr.setQrType(
-                request.getQrType()
-        );
+                        String serialNumber = batch.getBatchNumber()
+                                        + "-"
+                                        + String.format("%06d", i);
 
-        qr.setProduct(product);
+                        qr.setQrCode(
+                                        UUID.randomUUID().toString());
+                        qr.setQrType(request.getQrType());
+                        qr.setSerialNumber(serialNumber);
 
-        qr.setBatch(batch);
+                        qr.setProduct(product);
 
-        QRCode saved =
+                        qr.setBatch(batch);
+
+                        qr.setCompany(product.getCompany());
+
+                        qrCodes.add(qr);
+                }
+
+                List<QRCode> savedQrs = qrCodeRepository.saveAll(qrCodes);
+
+                return new QRGenerationResponse(
+                                batch.getId(),
+                                batch.getBatchNumber(),
+                                qrCodes.size(),
+                                "QR codes generated successfully");
+        }
+
+        @Override
+        public Page<QRCodeResponse> getAll(UUID companyId, Pageable pageable) {
+
+                return qrCodeRepository
+                                .findByCompany_IdAndActiveTrue(companyId, pageable)
+                                .map(this::map);
+        }
+
+        @Override
+        public QRCodeResponse scanQRCode(
+                        String qrCode) {
+
+                QRCode qr = qrCodeRepository
+                                .findByQrCode(qrCode)
+                                .orElseThrow();
+
+                qr.setLastScannedAt(
+                                LocalDateTime.now());
+
+                return map(
+                                qrCodeRepository.save(qr));
+        }
+
+        @Override
+        public void toggleStatus(UUID companyId,
+                        String id,
+                        boolean active) {
+
+                QRCode qr = qrCodeRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("QR Code not found"));
+
+                qr.setActive(active);
+
                 qrCodeRepository.save(qr);
+        }
 
-        return map(saved);
-    }
+        @Override
+        public void deleteQRCode(UUID companyId,
+                        String id) {
 
-    @Override
-    public List<QRCodeResponse> getAll() {
+                QRCode qr = qrCodeRepository
+                                .findByIdAndCompany_Id(
+                                                id,
+                                                companyId)
+                                .orElseThrow(() -> new RuntimeException("QR Code not found"));
 
-        return qrCodeRepository
-                .findAll()
-                .stream()
-                .map(this::map)
-                .toList();
-    }
+                qrCodeRepository.delete(qr);
+        }
 
-    @Override
-    public QRCodeResponse scanQRCode(
-            String qrCode
-    ) {
+        private QRCodeResponse map(
+                        QRCode qr) {
 
-        QRCode qr =
-                qrCodeRepository
-                        .findByQrCode(qrCode)
-                        .orElseThrow();
-
-        qr.setLastScannedAt(
-                LocalDateTime.now()
-        );
-
-        return map(
-                qrCodeRepository.save(qr)
-        );
-    }
-
-    @Override
-    public void toggleStatus(
-            String id,
-            boolean active
-    ) {
-
-        QRCode qr =
-                qrCodeRepository
-                        .findById(id)
-                        .orElseThrow();
-
-        qr.setActive(active);
-
-        qrCodeRepository.save(qr);
-    }
-
-    @Override
-    public void deleteQRCode(
-            String id
-    ) {
-
-        qrCodeRepository.deleteById(id);
-    }
-
-    private QRCodeResponse map(
-            QRCode qr
-    ) {
-
-        return new QRCodeResponse(
-                qr.getId(),
-                qr.getQrCode(),
-                qr.getQrType(),
-                qr.isActive(),
-                qr.getProduct().getProductName(),
-                qr.getBatch().getBatchNumber(),
-                qr.getCreatedAt(),
-                qr.getLastScannedAt()
-        );
-    }
+                return new QRCodeResponse(
+                                qr.getId(),
+                                qr.getQrCode(),
+                                qr.getQrType(),
+                                qr.isActive(),
+                                qr.getProduct().getProductName(),
+                                qr.getBatch().getBatchNumber(),
+                                qr.getCreatedAt(),
+                                qr.getLastScannedAt());
+        }
 }

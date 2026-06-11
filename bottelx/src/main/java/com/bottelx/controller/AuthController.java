@@ -13,7 +13,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,12 +56,7 @@ public class AuthController {
 	public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpReq,
 			HttpServletResponse httpRes) {
 		try {
-			System.out.println(
-					new BCryptPasswordEncoder(12)
-							.encode("Admin@123"));
 
-			System.out.println(
-					"Login attempt for user: " + request.getUserName() + ", Password: " + request.getPassword());
 			authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword()));
 
@@ -114,17 +108,6 @@ public class AuthController {
 			}).toList();
 			UserDto dto = new UserDto(user.getId(), user.getEmail(), user.getUserName(), user.getFirstName(),
 					user.getLastName(), user.getPhone(), companyDto, roleDtos, user.isActive());
-
-			// dto.setId(user.getId());
-			// dto.setFirstName(user.getFirstName());
-			// dto.setLastName(user.getLastName());
-			// dto.setEmail(user.getEmail());
-			// dto.setUserName(user.getUserName());
-
-			// if (user.getCompany() != null) {
-			// dto.setCompanyName(user.getCompany().getCompanyName());
-			// }
-			// dto.setActive(user.isActive());
 
 			return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken, dto));
 

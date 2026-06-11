@@ -1,5 +1,7 @@
 package com.bottelx.dto;
 
+import java.util.UUID;
+
 
 public class ProductResponse {
 
@@ -19,7 +21,7 @@ public class ProductResponse {
 
     private Boolean active;
 
-    private String manufacturer;
+    private UUID manufacturer;
 
     private String categoryName;
 
@@ -87,11 +89,11 @@ public class ProductResponse {
         this.active = active;
     }
 
-    public String getManufacturer() {
+    public UUID getManufacturer() {
         return manufacturer;
     }
 
-    public void setManufacturer(String manufacturer) {
+    public void setManufacturer(UUID manufacturer) {
         this.manufacturer = manufacturer;
     }
 
@@ -119,9 +121,8 @@ public class ProductResponse {
             Double price,
             Integer stockQuantity,
             Boolean active,
-            String manufacturer,
-            String categoryName
-    ) {
+            UUID manufacturer,
+            String categoryName) {
         this.id = id;
         this.productName = productName;
         this.productCode = productCode;
@@ -134,7 +135,7 @@ public class ProductResponse {
         this.categoryName = categoryName;
     }
 
-     public static Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -156,7 +157,7 @@ public class ProductResponse {
 
         private Boolean active;
 
-        private String manufacturer;
+        private UUID manufacturer;
 
         private String categoryName;
 
@@ -200,7 +201,7 @@ public class ProductResponse {
             return this;
         }
 
-        public Builder manufacturer(String manufacturer) {
+        public Builder manufacturer(UUID manufacturer) {
             this.manufacturer = manufacturer;
             return this;
         }
@@ -222,8 +223,7 @@ public class ProductResponse {
                     stockQuantity,
                     active,
                     manufacturer,
-                    categoryName
-            );
+                    categoryName);
         }
     }
 }

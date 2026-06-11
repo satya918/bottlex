@@ -30,8 +30,7 @@ public class RewardTransaction {
     @PrePersist
     public void prePersist() {
 
-        createdAt =
-                Instant.now();
+        createdAt = Instant.now();
     }
 
     public UUID getId() {
@@ -43,8 +42,7 @@ public class RewardTransaction {
     }
 
     public void setUser(
-            User user
-    ) {
+            User user) {
         this.user = user;
     }
 
@@ -53,8 +51,7 @@ public class RewardTransaction {
     }
 
     public void setAmount(
-            BigDecimal amount
-    ) {
+            BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -63,10 +60,8 @@ public class RewardTransaction {
     }
 
     public void setDescription(
-            String description
-    ) {
-        this.description =
-                description;
+            String description) {
+        this.description = description;
     }
 
     public Instant getCreatedAt() {

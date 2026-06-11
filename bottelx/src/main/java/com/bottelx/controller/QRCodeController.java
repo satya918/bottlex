@@ -1,70 +1,63 @@
 package com.bottelx.controller;
 
-
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import com.bottelx.dto.QRCodeRequest;
 import com.bottelx.dto.QRCodeResponse;
+import com.bottelx.dto.QRGenerationResponse;
 import com.bottelx.services.QRCodeService;
 
-import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/qr")
-@CrossOrigin("*")
 public class QRCodeController {
-@Autowired
-    private  QRCodeService qrCodeService;
+        @Autowired
+        private QRCodeService qrCodeService;
 
-    public QRCodeController(
-            QRCodeService qrCodeService
-    ) {
-        this.qrCodeService = qrCodeService;
-    }
+        @PostMapping("/generate/{companyId}")
+        public QRGenerationResponse  generate(
+                        @RequestBody QRCodeRequest request,
+                        @PathVariable UUID companyId) {
 
-    @PostMapping("/generate")
-    public QRCodeResponse generate(
-            @RequestBody QRCodeRequest request
-    ) {
+                return qrCodeService
+                                .generateQRCode(request, companyId);
+        }
 
-        return qrCodeService
-                .generateQRCode(request);
-    }
+        @GetMapping("/getAll/{companyId}")
+        public Page<QRCodeResponse> getAll(@PathVariable UUID companyId,  Pageable pageable) {
 
-    @GetMapping
-    public List<QRCodeResponse> getAll() {
+                return qrCodeService.getAll(companyId, pageable);
+        }
 
-        return qrCodeService.getAll();
-    }
+        @PostMapping("/scan/{code}")
+        public QRCodeResponse scan(
+                        @PathVariable String code) {
 
-    @PostMapping("/scan/{code}")
-    public QRCodeResponse scan(
-            @PathVariable String code
-    ) {
+                return qrCodeService
+                                .scanQRCode(code);
+        }
 
-        return qrCodeService
-                .scanQRCode(code);
-    }
+        @PatchMapping("/{companyId}/{id}/status")
+        public void toggleStatus(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id,
+                        @RequestParam boolean active) {
 
-    @PatchMapping("/{id}/status")
-    public void toggleStatus(
-            @PathVariable String id,
-            @RequestParam boolean active
-    ) {
+                qrCodeService.toggleStatus(
+                                companyId,
+                                id,
+                                active);
+        }
 
-        qrCodeService.toggleStatus(
-                id,
-                active
-        );
-    }
+        @DeleteMapping("/delete/{companyId}/{id}")
+        public void delete(
+                        @PathVariable UUID companyId,
+                        @PathVariable String id) {
 
-    @DeleteMapping("/{id}")
-    public void delete(
-            @PathVariable String id
-    ) {
-
-        qrCodeService.deleteQRCode(id);
-    }
+                qrCodeService.deleteQRCode(companyId, id);
+        }
 }
